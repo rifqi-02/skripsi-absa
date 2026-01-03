@@ -34,7 +34,6 @@ def _simple_clean(text: str) -> str:
     t = t.replace("enggak", "gak").replace("nggak", "gak")
     return re.sub(r"[^a-z0-9_ ]+", " ", t)
 
-
 def _root_id(token: str) -> str:
     t = str(token).lower().strip()
     t = re.sub(r'(ku|mu|nya)$', '', t)
@@ -73,7 +72,7 @@ def split_into_sentences(text: str):
         buf = ""
 
         for part in parts:
-            if part in [".", "!", "?"]:
+            if part in [".", "!", "?", ","]:
                 buf += part
                 if buf.strip():
                     sentences.append(buf.strip())
@@ -85,66 +84,6 @@ def split_into_sentences(text: str):
             sentences.append(buf.strip())
 
     return sentences
-    
-def _has_aspect_anchor(sentence: str) -> bool:
-    """Cek apakah 1 kalimat mengandung keyword aspek (BASE_ROOT) atau rule khusus."""
-    toks = sentence.split()
-    for tok in toks:
-        root = _root_id(_simple_clean(tok))
-
-        # rule khusus kamu: "cocok" -> Efek
-        if root == "cocok":
-            return True
-
-        # anchor berbasis BASE_ROOT
-        for aspek in ASPEK:
-            base = BASE_ROOT[aspek]
-            if base in root:   # tetap pakai logika kamu (substring)
-                return True
-
-    return False
-
-
-ABBR_FRAGMENTS = {"st", "dr", "mr", "mrs", "ms", "prof"}  # boleh tambah kalau perlu
-
-def merge_sentences_if_no_new_aspect(sentences):
-    merged = []
-    buffer = ""
-
-    for s in sentences:
-        s = s.strip()
-        if not s:
-            continue
-
-        s_clean = _simple_clean(s).strip()
-        s_words = s_clean.split()
-
-        # (A) kalau fragmen super pendek / singkatan -> PAKSA gabung ke buffer
-        is_abbr = (s_clean in ABBR_FRAGMENTS) or (len(s_words) == 1 and len(s_clean) <= 3)
-        if is_abbr:
-            if buffer:
-                buffer = (buffer + " " + s).strip()
-            else:
-                buffer = s
-            continue
-
-        # normal flow
-        if not buffer:
-            buffer = s
-            continue
-
-        # (B) kalau kalimat baru tidak bawa anchor aspek -> gabung
-        if not _has_aspect_anchor(s):
-            buffer = (buffer + " " + s).strip()
-        else:
-            merged.append(buffer)
-            buffer = s
-
-    if buffer:
-        merged.append(buffer)
-
-    return merged
-
 
 # =====================================================
 # LOAD RESOURCES LDA (dictionary, lda, mapping, seeds)
@@ -214,7 +153,6 @@ def preprocess_for_sentiment(text: str) -> str:
     cleaned = _simple_clean(text)
     tokens = cleaned.split()
     return " ".join(tokens)
-
 
 def predict_sentiment_for_segment(seg_text: str, aspek: str, sent_models: dict):
     if aspek not in sent_models:
@@ -321,9 +259,7 @@ def predict_aspect_boosted(
 
 def segment_text_for_aspect(text: str):
     sentences = split_into_sentences(text)
-    sentences = merge_sentences_if_no_new_aspect(sentences)
     segments = []
-    
 
     # --- 1) Segmentasi awal per kalimat + anchor BASE_ROOT + 'cocok' ---
     for sent in sentences:
@@ -1118,7 +1054,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-
-
