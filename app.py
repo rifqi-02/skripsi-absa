@@ -105,11 +105,9 @@ def _has_aspect_anchor(sentence: str) -> bool:
     return False
 
 
+ABBR_FRAGMENTS = {"st", "dr", "mr", "mrs", "ms", "prof"}  # boleh tambah kalau perlu
+
 def merge_sentences_if_no_new_aspect(sentences):
-    """
-    Gabungkan kalimat hasil split tanda baca, tapi JANGAN cut kalau
-    kalimat baru tidak membawa anchor aspek.
-    """
     merged = []
     buffer = ""
 
@@ -118,15 +116,27 @@ def merge_sentences_if_no_new_aspect(sentences):
         if not s:
             continue
 
+        s_clean = _simple_clean(s).strip()
+        s_words = s_clean.split()
+
+        # (A) kalau fragmen super pendek / singkatan -> PAKSA gabung ke buffer
+        is_abbr = (s_clean in ABBR_FRAGMENTS) or (len(s_words) == 1 and len(s_clean) <= 3)
+        if is_abbr:
+            if buffer:
+                buffer = (buffer + " " + s).strip()
+            else:
+                buffer = s
+            continue
+
+        # normal flow
         if not buffer:
             buffer = s
             continue
 
-        # kalau kalimat baru tidak punya anchor aspek, gabung ke buffer
+        # (B) kalau kalimat baru tidak bawa anchor aspek -> gabung
         if not _has_aspect_anchor(s):
             buffer = (buffer + " " + s).strip()
         else:
-            # kalau punya anchor aspek, finalize buffer lama
             merged.append(buffer)
             buffer = s
 
@@ -134,6 +144,7 @@ def merge_sentences_if_no_new_aspect(sentences):
         merged.append(buffer)
 
     return merged
+
 
 # =====================================================
 # LOAD RESOURCES LDA (dictionary, lda, mapping, seeds)
@@ -1107,6 +1118,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
