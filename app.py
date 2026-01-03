@@ -86,51 +86,6 @@ def split_into_sentences(text: str):
 
     return sentences
     
-# =====================================================
-# NEGATION HANDLING (untuk SVM Sentiment)
-# =====================================================
-
-NEGATORS = {
-    "tidak", "tak", "gak", "ga", "nggak", "enggak",
-    "bukan", "belum", "kurang", "jangan", "ngga",
-}
-
-# kata yang sering jadi "pemutus" scope negasi
-NEGATION_BREAKERS = {".", "!", "?", ",", "tapi", "namun", "cuma", "meski", "walau"}
-
-def apply_negation_tagging(tokens, window=2):
-    """
-    Tag token setelah negator menjadi NOT_x sampai batas window
-    atau sampai bertemu breaker (tapi/namun/koma/dll).
-    Contoh: ["harga", "kurang", "murah"] -> ["harga", "NOT_murah"]
-    """
-    out = []
-    i = 0
-    while i < len(tokens):
-        tok = tokens[i]
-
-        if tok in NEGATORS:
-            # tag token berikutnya (maks window token)
-            j = i + 1
-            tagged = 0
-            while j < len(tokens) and tagged < window:
-                nxt = tokens[j]
-                if nxt in NEGATION_BREAKERS:
-                    break
-                # skip kalau token kosong
-                if nxt.strip():
-                    out.append("NOT_" + nxt)
-                    tagged += 1
-                j += 1
-            # lewati token yang sudah ditag
-            i = j
-            continue
-
-        # kalau bukan negator, simpan normal
-        out.append(tok)
-        i += 1
-
-    return out
 
 # =====================================================
 # LOAD RESOURCES LDA (dictionary, lda, mapping, seeds)
@@ -199,10 +154,6 @@ def load_sentiment_models():
 def preprocess_for_sentiment(text: str) -> str:
     cleaned = _simple_clean(text)
     tokens = cleaned.split()
-
-    # terapkan negation tagging
-    tokens = apply_negation_tagging(tokens, window=2)
-
     return " ".join(tokens)
 
 
@@ -1106,4 +1057,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
