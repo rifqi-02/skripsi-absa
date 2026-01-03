@@ -73,7 +73,7 @@ def split_into_sentences(text: str):
         buf = ""
 
         for part in parts:
-            if part in [".", "!", "?", ","]:
+            if part in [".", "!", "?"]:
                 buf += part
                 if buf.strip():
                     sentences.append(buf.strip())
@@ -86,6 +86,54 @@ def split_into_sentences(text: str):
 
     return sentences
     
+def _has_aspect_anchor(sentence: str) -> bool:
+    """Cek apakah 1 kalimat mengandung keyword aspek (BASE_ROOT) atau rule khusus."""
+    toks = sentence.split()
+    for tok in toks:
+        root = _root_id(_simple_clean(tok))
+
+        # rule khusus kamu: "cocok" -> Efek
+        if root == "cocok":
+            return True
+
+        # anchor berbasis BASE_ROOT
+        for aspek in ASPEK:
+            base = BASE_ROOT[aspek]
+            if base in root:   # tetap pakai logika kamu (substring)
+                return True
+
+    return False
+
+
+def merge_sentences_if_no_new_aspect(sentences):
+    """
+    Gabungkan kalimat hasil split tanda baca, tapi JANGAN cut kalau
+    kalimat baru tidak membawa anchor aspek.
+    """
+    merged = []
+    buffer = ""
+
+    for s in sentences:
+        s = s.strip()
+        if not s:
+            continue
+
+        if not buffer:
+            buffer = s
+            continue
+
+        # kalau kalimat baru tidak punya anchor aspek, gabung ke buffer
+        if not _has_aspect_anchor(s):
+            buffer = (buffer + " " + s).strip()
+        else:
+            # kalau punya anchor aspek, finalize buffer lama
+            merged.append(buffer)
+            buffer = s
+
+    if buffer:
+        merged.append(buffer)
+
+    return merged
 
 # =====================================================
 # LOAD RESOURCES LDA (dictionary, lda, mapping, seeds)
@@ -262,7 +310,9 @@ def predict_aspect_boosted(
 
 def segment_text_for_aspect(text: str):
     sentences = split_into_sentences(text)
+    sentences = merge_sentences_if_no_new_aspect(sentences)
     segments = []
+    
 
     # --- 1) Segmentasi awal per kalimat + anchor BASE_ROOT + 'cocok' ---
     for sent in sentences:
@@ -1057,5 +1107,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
