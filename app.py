@@ -315,7 +315,8 @@ def segment_text_for_aspect(text: str):
 
         if not anchor_list:
             segments.append({
-                "seg_text": sent.strip(),
+                "seg_text": sent.strip(),  # DISPLAY (asli)
+                "seg_text_model": normalize_text(sent, use_stemmer=True),  # MODEL
                 "anchor_aspect": None
             })
             continue
@@ -332,8 +333,9 @@ def segment_text_for_aspect(text: str):
                 seg_text = " ".join(seg_tokens).strip(" ,")
                 if seg_text:
                     segments.append({
-                        "seg_text": seg_text,
-                        "anchor_aspect": None
+                        "seg_text": seg_text,  # DISPLAY (as-is)
+                        "seg_text_model": normalize_text(seg_text, use_stemmer=True),  # MODEL
+                        "anchor_aspect": asp
                     })
 
             end = compressed[i + 1][0] if i + 1 < len(compressed) else len(tokens)
@@ -454,10 +456,12 @@ def test_segmented_text(
 
     labeled = []
     for info in seg_infos:
-        seg = info["seg_text"]
+        seg_display = info["seg_text"]
+        seg_model = info.get("seg_text_model", seg_display)
         anchor = info.get("anchor_aspect", None)
+        
+        toks = tokenize_from_val(seg_model, bigram=bigram)
 
-        toks = tokenize_from_val(seg, bigram=bigram)
 
         p_raw, hits, p_boost, aspect_pred, aspect_top1_plain = predict_aspect_boosted(
             toks,
@@ -473,7 +477,7 @@ def test_segmented_text(
         prob_final   = p_boost[aspect_final]
 
         labeled.append({
-            "seg_text": seg,
+            "seg_text": seg_display,  
             "anchor_aspect": anchor,
             "tokens": toks,
             "p_boost": p_boost,
@@ -710,8 +714,11 @@ def main():
             rows = []
             for r in results:
                 aspek = r["aspect_final"]
-                seg_text = r["seg_text"]
-                sent_label, _ = predict_sentiment_for_segment(seg_text, aspek, sent_models)
+                seg_text_display = r["seg_text"]
+                seg_text_model = r.get("seg_text_model", seg_text_display)
+                
+                sent_label, _ = predict_sentiment_for_segment(seg_text_model, aspek, sent_models)
+
 
                 rows.append({
                     "Segmen": r["seg_index"],
@@ -1080,6 +1087,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
