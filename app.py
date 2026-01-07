@@ -152,6 +152,7 @@ def load_sentiment_models():
 def preprocess_for_sentiment(text: str) -> str:
     cleaned = _simple_clean(text)
     tokens = cleaned.split()
+    tokens = [_root_id(t) for t in tokens if t]
     return " ".join(tokens)
 
 def predict_sentiment_for_segment(seg_text: str, aspek: str, sent_models: dict):
@@ -1054,3 +1055,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
