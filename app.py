@@ -316,6 +316,7 @@ def segment_text_for_aspect(text: str):
                 anchor_list.append((idx, "Efek"))
 
         if not anchor_list:
+            seg_text = sent.strip()
             segments.append({
                 "seg_text": seg_text,
                 "seg_text_model": normalize_text(seg_text),
@@ -338,7 +339,7 @@ def segment_text_for_aspect(text: str):
                     segments.append({
                         "seg_text": seg_text,
                         "seg_text_model": normalize_text(seg_text),
-                        "anchor_aspect": asp
+                        "anchor_aspect": None
                     })
 
 
@@ -1105,6 +1106,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
