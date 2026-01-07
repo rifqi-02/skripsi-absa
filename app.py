@@ -312,13 +312,7 @@ def segment_text_for_aspect(text: str):
                     anchored = True
                     break
 
-            if not anchored and root == "cocok":
-                # kalau ada negasi sebelum "cocok", masukkan negasinya ke segmen Efek
-                prev_root = _root_id(_simple_clean(tokens[idx - 1])) if idx > 0 else ""
-                negators = {"kurang", "tidak", "gak", "nggak", "enggak", "ga"}
-            
-                start_pos = idx - 1 if prev_root in negators else idx
-                anchor_list.append((start_pos, "Efek"))
+
 
 
         if not anchor_list:
@@ -1112,6 +1106,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
