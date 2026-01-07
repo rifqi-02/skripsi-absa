@@ -33,6 +33,22 @@ ASPEK = ["Kemasan", "Aroma", "Tekstur", "Harga", "Efek"]
 # =====================================================
 # UTIL PREPROCESSING
 # =====================================================
+def split_clitics_id(text: str) -> str:
+    """
+    Pisahkan klitik bahasa Indonesia: -nya, -ku, -mu
+    contoh: 'harganya' -> 'harga nya'
+    """
+    t = str(text).lower()
+    t = re.sub(r"([a-z0-9_]+)(nya|ku|mu)\b", r"\1 \2", t)
+    return t
+
+
+def normalize_text(text: str, use_stemmer=True) -> str:
+    t = _simple_clean(text)
+    t = split_clitics_id(t)   
+    if use_stemmer and stemmer is not None:
+        t = stemmer.stem(t)
+    return t
 
 def _simple_clean(text: str) -> str:
     t = str(text).lower()
@@ -155,10 +171,9 @@ def load_sentiment_models():
     return models
 
 def preprocess_for_sentiment(text: str) -> str:
-    cleaned = _simple_clean(text)
-    stemmed = stemmer.stem(cleaned)
-    tokens = stemmed.split()
-    return " ".join(tokens)
+    t = normalize_text(text, use_stemmer=True)
+    return " ".join(t.split())
+
 
 def predict_sentiment_for_segment(seg_text: str, aspek: str, sent_models: dict):
     if aspek not in sent_models:
@@ -183,9 +198,9 @@ def predict_sentiment_for_segment(seg_text: str, aspek: str, sent_models: dict):
 
 SEGMENT_STOPWORDS = {
     "tidak", "gak", "nggak", "enggak", "ga",
-    "banget", "aja", "sih", "dong", "kok",
-    "dan", "atau", "yang", "itu", "ini",
-    "enak", "dipake", "pake", "nyaman", "kurang"
+    "banget", "aja", "sih", "dong", "kok", "walaupun"
+    "dan", "atau", "yang", "itu", "ini","namun",
+    "enak", "dipake", "pake", "nyaman", "kurang","tapi"
 }
 
 BASE_ROOT = {
@@ -270,8 +285,10 @@ def segment_text_for_aspect(text: str):
     # --- 1) Segmentasi awal per kalimat + anchor BASE_ROOT + 'cocok' ---
     for sent in sentences:
         cleaned = _simple_clean(sent)
-        stemmed = stemmer.stem(cleaned)
+        cleaned = split_clitics_id(cleaned)     
+        stemmed = stemmer.stem(cleaned) if stemmer is not None else cleaned
         tokens = stemmed.split()
+
 
         if not tokens:
             continue
@@ -1063,5 +1080,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
