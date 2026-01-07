@@ -612,20 +612,23 @@ def run_absa_on_dataframe(df_raw, _sent_models):
 
         for seg in segments:
             aspek = seg["aspect_final"]
-            seg_text = seg["seg_text"]
-
-            sent_label, _ = predict_sentiment_for_segment(seg_text, aspek, _sent_models)
-
+        
+            seg_text_display = seg["seg_text"]  # DISPLAY
+            seg_text_model = seg.get("seg_text_model", seg_text_display)  # MODEL
+        
+            sent_label, _ = predict_sentiment_for_segment(seg_text_model, aspek, _sent_models)
+        
             data_rows.append({
                 "original_index": idx,
                 "Segmen": seg["seg_index"],
-                "Teks Segmen": seg_text_display,
+                "Teks Segmen": seg_text_display,   # <--- ini aman sekarang
                 "Aspek": aspek,
                 "Sentimen": sent_label,
                 "SkinType": row.get("profile-description", None),
                 "Age": row.get("profile-age", None),
                 "username": row.get("profile-username", None),
             })
+
 
     return pd.DataFrame(data_rows)
 
@@ -1103,6 +1106,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
