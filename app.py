@@ -320,7 +320,7 @@ def segment_text_for_aspect(text: str):
             segments.append({
                 "seg_text": seg_text,
                 "seg_text_model": normalize_text(seg_text),
-                "anchor_aspect": asp
+                "anchor_aspect": None
             })
 
             continue
@@ -1106,6 +1106,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
