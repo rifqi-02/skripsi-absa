@@ -722,7 +722,7 @@ def main():
 
                 rows.append({
                     "Segmen": r["seg_index"],
-                    "Teks Segmen": seg_text,
+                    "Teks Segmen": seg_text_display,   
                     "Aspek": aspek,
                     "Sentimen": sent_label,
                 })
@@ -1087,6 +1087,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
