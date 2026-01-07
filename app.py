@@ -41,6 +41,13 @@ def split_clitics_id(text: str) -> str:
     t = str(text).lower()
     t = re.sub(r"([a-z0-9_]+)(nya|ku|mu)\b", r"\1 \2", t)
     return t
+    
+def join_clitics_id(text: str) -> str:
+    """
+    Gabungkan kembali klitik untuk DISPLAY
+    contoh: 'aroma nya' -> 'aromanya'
+    """
+    return re.sub(r"\b([a-z0-9_]+)\s+(nya|ku|mu)\b", r"\1\2", text)
 
 
 def normalize_text(text: str, use_stemmer=True) -> str:
@@ -612,7 +619,7 @@ def run_absa_on_dataframe(df_raw, _sent_models):
             data_rows.append({
                 "original_index": idx,
                 "Segmen": seg["seg_index"],
-                "Teks Segmen": seg_text,
+                "Teks Segmen": join_clitics_id(seg_text_display),
                 "Aspek": aspek,
                 "Sentimen": sent_label,
                 "SkinType": row.get("profile-description", None),
@@ -704,7 +711,7 @@ def main():
             placeholder="Masukkan ulasan..."
         )
 
-        if st.button("🚀 Deteksi Aspek + Sentimen"):
+        if st.button(" Deteksi Aspek dan Sentimen"):
             if not text.strip():
                 st.warning("Teks kosong.")
                 st.stop()
@@ -714,20 +721,22 @@ def main():
             rows = []
             for r in results:
                 aspek = r["aspect_final"]
-                seg_text_display = r["seg_text"]
+            
+                seg_text_display = join_clitics_id(r["seg_text"])  # DISPLAY rapi
                 seg_text_model = r.get("seg_text_model", seg_text_display)
-                
+            
                 sent_label, _ = predict_sentiment_for_segment(seg_text_model, aspek, sent_models)
-
-
+            
                 rows.append({
                     "Segmen": r["seg_index"],
-                    "Teks Segmen": seg_text_display,   
+                    "Teks Segmen": seg_text_display,
                     "Aspek": aspek,
                     "Sentimen": sent_label,
                 })
 
+            
             st.dataframe(pd.DataFrame(rows), use_container_width=True)
+
 
     # =====================================================================
     #                        DASHBOARD DATASET
@@ -1087,6 +1096,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
