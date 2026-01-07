@@ -287,8 +287,9 @@ def segment_text_for_aspect(text: str):
     # --- 1) Segmentasi awal per kalimat + anchor BASE_ROOT + 'cocok' ---
     for sent in sentences:
         cleaned = _simple_clean(sent)
-        cleaned = split_clitics_id(cleaned)     
-        tokens = stemmed.split()
+        cleaned = split_clitics_id(cleaned)
+        tokens = cleaned.split()
+
 
 
         if not tokens:
@@ -1104,6 +1105,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
