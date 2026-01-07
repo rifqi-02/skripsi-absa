@@ -761,15 +761,13 @@ def main():
             # Proses ABSA
             with st.spinner("Memproses ABSA seluruh dataset..."):
                 df_seg = run_absa_on_dataframe(df_raw, sent_models)
-                
-            # ======================
-            # DISPLAY TEXT (RAPI)
-            # ======================
+
             df_seg["Teks Segmen Display"] = (
                 df_seg["Teks Segmen"]
                 .astype(str)
                 .apply(join_clitics_id)
             )
+
 
             # ===================== DASHBOARD SUMMARY CARDS =====================
             # ---------- Insight: Ringkasan Cepat Dataset ----------
@@ -1105,6 +1103,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
