@@ -12,10 +12,6 @@ import matplotlib.pyplot as plt
 from wordcloud import WordCloud
 from gensim.corpora import Dictionary
 from gensim.models.ldamodel import LdaModel
-from Sastrawi.Stemmer.StemmerFactory import StemmerFactory
-
-factory = StemmerFactory()
-stemmer = factory.create_stemmer()
 
 
 # =====================================================
@@ -50,12 +46,11 @@ def join_clitics_id(text: str) -> str:
     return re.sub(r"\b([a-z0-9_]+)\s+(nya|ku|mu)\b", r"\1\2", text)
 
 
-def normalize_text(text: str, use_stemmer=True) -> str:
+def normalize_text(text: str) -> str:
     t = _simple_clean(text)
-    t = split_clitics_id(t)   
-    if use_stemmer and stemmer is not None:
-        t = stemmer.stem(t)
+    t = split_clitics_id(t)
     return t
+
 
 def _simple_clean(text: str) -> str:
     t = str(text).lower()
@@ -178,7 +173,7 @@ def load_sentiment_models():
     return models
 
 def preprocess_for_sentiment(text: str) -> str:
-    t = normalize_text(text, use_stemmer=True)
+    t = normalize_text(text)
     return " ".join(t.split())
 
 
@@ -293,7 +288,6 @@ def segment_text_for_aspect(text: str):
     for sent in sentences:
         cleaned = _simple_clean(sent)
         cleaned = split_clitics_id(cleaned)     
-        stemmed = stemmer.stem(cleaned) if stemmer is not None else cleaned
         tokens = stemmed.split()
 
 
@@ -322,10 +316,11 @@ def segment_text_for_aspect(text: str):
 
         if not anchor_list:
             segments.append({
-                "seg_text": sent.strip(),  # DISPLAY (asli)
-                "seg_text_model": normalize_text(sent, use_stemmer=True),  # MODEL
-                "anchor_aspect": None
+                "seg_text": seg_text,
+                "seg_text_model": normalize_text(seg_text),
+                "anchor_aspect": asp
             })
+
             continue
 
         compressed = []
@@ -340,19 +335,22 @@ def segment_text_for_aspect(text: str):
                 seg_text = " ".join(seg_tokens).strip(" ,")
                 if seg_text:
                     segments.append({
-                        "seg_text": seg_text,  # DISPLAY (as-is)
-                        "seg_text_model": normalize_text(seg_text, use_stemmer=True),  # MODEL
+                        "seg_text": seg_text,
+                        "seg_text_model": normalize_text(seg_text),
                         "anchor_aspect": asp
                     })
+
 
             end = compressed[i + 1][0] if i + 1 < len(compressed) else len(tokens)
             seg_tokens = tokens[pos:end]
             seg_text = " ".join(seg_tokens).strip(" ,")
             if seg_text:
                 segments.append({
-                    "seg_text": seg_text,
-                    "anchor_aspect": asp
-                })
+                "seg_text": seg_text,
+                "seg_text_model": normalize_text(seg_text),
+                "anchor_aspect": asp
+            })
+
 
             prev_end = end
 
@@ -1106,6 +1104,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
