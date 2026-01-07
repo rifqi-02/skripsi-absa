@@ -619,7 +619,7 @@ def run_absa_on_dataframe(df_raw, _sent_models):
             data_rows.append({
                 "original_index": idx,
                 "Segmen": seg["seg_index"],
-                "Teks Segmen": join_clitics_id(seg_text_display),
+                "Teks Segmen": seg_text_display,
                 "Aspek": aspek,
                 "Sentimen": sent_label,
                 "SkinType": row.get("profile-description", None),
@@ -1105,6 +1105,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
