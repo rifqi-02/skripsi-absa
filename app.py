@@ -12,6 +12,11 @@ import matplotlib.pyplot as plt
 from wordcloud import WordCloud
 from gensim.corpora import Dictionary
 from gensim.models.ldamodel import LdaModel
+from Sastrawi.Stemmer.StemmerFactory import StemmerFactory
+
+factory = StemmerFactory()
+stemmer = factory.create_stemmer()
+
 
 # =====================================================
 # PATH – DISKONFIG SESUAI FOLDER ABSA
@@ -151,8 +156,8 @@ def load_sentiment_models():
 
 def preprocess_for_sentiment(text: str) -> str:
     cleaned = _simple_clean(text)
-    tokens = cleaned.split()
-    tokens = [_root_id(t) for t in tokens if t]
+    stemmed = stemmer.stem(cleaned)
+    tokens = stemmed.split()
     return " ".join(tokens)
 
 def predict_sentiment_for_segment(seg_text: str, aspek: str, sent_models: dict):
@@ -264,7 +269,10 @@ def segment_text_for_aspect(text: str):
 
     # --- 1) Segmentasi awal per kalimat + anchor BASE_ROOT + 'cocok' ---
     for sent in sentences:
-        tokens = sent.split()
+        cleaned = _simple_clean(sent)
+        stemmed = stemmer.stem(cleaned)
+        tokens = stemmed.split()
+
         if not tokens:
             continue
 
@@ -1055,4 +1063,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
