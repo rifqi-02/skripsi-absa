@@ -1088,7 +1088,7 @@ def main():
             st.markdown("###  Dataframe Segmen (Aspek + Sentimen)")
 
             cols_show = ["original_index", "Segmen", "Teks Segmen Display", "Aspek", "Sentimen"]
-            st.dataframe(df_seg[cols_show], use_container_width=True)
+            st.dataframe(df_seg[cols_show].style.set_properties(**{"font-size":"18px"}), use_container_width=True)
 
 
     
@@ -1106,6 +1106,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
